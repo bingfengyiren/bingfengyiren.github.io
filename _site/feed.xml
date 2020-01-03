@@ -5,9 +5,42 @@
     <description>关于程序与设计、黑客与画家 | 黄玄，Web &amp; Mobile Lover，Software Engineer，UX Designer | 这里是 @Hux黄玄 的个人博客，与你一起发现更大的世界。</description>
     <link>http://0.0.0.0:4000/</link>
     <atom:link href="http://0.0.0.0:4000/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Thu, 02 Jan 2020 15:10:09 +0800</pubDate>
-    <lastBuildDate>Thu, 02 Jan 2020 15:10:09 +0800</lastBuildDate>
+    <pubDate>Fri, 03 Jan 2020 20:57:22 +0800</pubDate>
+    <lastBuildDate>Fri, 03 Jan 2020 20:57:22 +0800</lastBuildDate>
     <generator>Jekyll v4.0.0</generator>
+    
+      <item>
+        <title>「论文」预训练之ELMO(一)</title>
+        <description>&lt;blockquote&gt;
+  &lt;p&gt;“Deep contextualized word representations”&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4 id=&quot;内容摘要&quot;&gt;内容摘要&lt;/h4&gt;
+
+&lt;p&gt;论文介绍了一种新型的深度上下文词表示模型，该模型既可以对词的复杂特征进行建模，比如：语法、语义特征，也可以&lt;/p&gt;
+
+&lt;h4 id=&quot;核心算法&quot;&gt;核心算法&lt;/h4&gt;
+
+&lt;p&gt;$
+D(P | Q)=\sum_{x \in X} P(x) \log \frac{P(x)}{Q(x)}
+$&lt;/p&gt;
+
+&lt;h4 id=&quot;论文效果&quot;&gt;论文效果&lt;/h4&gt;
+
+&lt;h4 id=&quot;代码实现&quot;&gt;代码实现&lt;/h4&gt;
+
+&lt;h4 id=&quot;参考文章&quot;&gt;参考文章&lt;/h4&gt;
+</description>
+        <pubDate>Fri, 03 Jan 2020 04:00:00 +0800</pubDate>
+        <link>http://0.0.0.0:4000/2020/01/03/elmo/</link>
+        <guid isPermaLink="true">http://0.0.0.0:4000/2020/01/03/elmo/</guid>
+        
+        <category>预训练</category>
+        
+        <category>NLP</category>
+        
+        
+      </item>
     
   </channel>
 </rss>

@@ -202,6 +202,47 @@
                 postlist-container
             ">
     			
+<div class="post-preview">
+    <a href="/2020/01/03/elmo/">
+        <h2 class="post-title">
+            「论文」预训练之ELMO(一)
+        </h2>
+        
+        <h3 class="post-subtitle">
+             
+        </h3>
+        
+        <div class="post-content-preview">
+            
+                
+  “Deep contextualized word representations”
+
+
+内容摘要
+
+论文介绍了一种新型的深度上下文词表示模型，该模型既可以对词的复杂特征进行建模，比如：语法、语义特征，也可以
+
+核心算法
+
+$
+D(P | Q)=\sum_{x \in X} P(x) \log \frac{P(x)}{Q(x)}
+$
+
+论文效果
+
+代码实现
+
+参考文章
+
+            
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by cuiming on January 3, 2020
+    </p>
+</div>
+<hr>
+
 
 <!-- Pager -->
 
@@ -218,6 +259,18 @@
                 <!-- Featured Tags -->
                 
 
+
+<section>
+    
+    <h5><a href="/archive/">FEATURED TAGS</a></h5>
+    <div class="tags">
+        
+        
+        
+        
+        
+    </div>
+</section>
 
 
                 <!-- Short About -->
@@ -283,6 +336,27 @@
 	</div>
 </div>
 
+
+<!-- Add support for Mathjax by Voleking-->
+<!-- If you want to see formulars well in post preview, Maybe you should add this.-->
+<!-- However, most of the time formulars may not appear in the post preview, you can delete it.-->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    TeX: {
+      equationNumbers: {
+        autoNumber: "AMS"
+      }
+    },
+    tex2jax: {
+      inlineMath: [ ['$','$'] ],
+      displayMath: [ ['$$','$$'] ],
+      processEscapes: true,
+    }
+  });
+</script>
+<script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
 
 
     <!-- Footer -->
