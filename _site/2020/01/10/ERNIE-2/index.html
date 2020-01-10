@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="关于程序与设计、黑客与画家 | 黄玄，Web & Mobile Lover，Software Engineer，UX Designer | 这里是 @Hux黄玄 的个人博客，与你一起发现更大的世界。">
+    <meta name="keywords"  content="机器学习，自然语言处理，自然语言理解，智能客服，推荐算法">
+    <meta name="theme-color" content="#000000">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="「翻译」ERNIE 2.0 - 崔鸣的博客 | CuiMing Blog">
+    
+    <meta property="og:type" content="article">
+    <meta property="og:description" content="
+  A Continual Pre-Training Framework for Language Understanding
+
+">
+    
+    <meta property="article:published_time" content="2020-01-10T04:00:00Z">
+    
+    
+    <meta property="article:author" content="cuiming">
+    
+    
+    <meta property="article:tag" content="预训练">
+    
+    <meta property="article:tag" content="NLP">
+    
+    
+    <meta property="og:image" content="http://0.0.0.0:4000/img/avatar-hux-ny.jpg">
+    <meta property="og:url" content="http://0.0.0.0:4000/2020/01/10/ERNIE-2/">
+    <meta property="og:site_name" content="崔鸣的博客 | CuiMing Blog">
+    
+    <title>「翻译」ERNIE 2.0 - 崔鸣的博客 | CuiMing Blog</title>
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/pwa/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://0.0.0.0:4000/2020/01/10/ERNIE-2/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">CuiMing's Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    <li>
+                        <a href="/about/">About</a>
+                    </li>
+                    
+                    
+                    
+                    <li>
+                        <a href="/archive/">Archive</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __HuxNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __HuxNav__.close()
+        }else{
+            __HuxNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close HuxNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __HuxNav__.close();
+    })
+</script>
+
+
+    <!-- Image to hack wechat -->
+<!-- <img src="/img/icon_wechat.png" width="0" height="0"> -->
+<!-- <img src="/img/post-pretrain-ernie.jpg" width="0" height="0"> -->
+
+<!-- Post Header -->
+
+
+
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/post-pretrain-ernie.jpg');
+        background: ;
+    }
+
+    
+</style>
+
+<header class="intro-header" >
+
+    <div class="header-mask"></div>
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/archive/?tag=%E9%A2%84%E8%AE%AD%E7%BB%83" title="预训练">预训练</a>
+                        
+                        <a class="tag" href="/archive/?tag=NLP" title="NLP">NLP</a>
+                        
+                    </div>
+                    <h1>「翻译」ERNIE 2.0</h1>
+                    
+                    <h2 class="subheading"> 持续语言理解预训练框架</h2>
+                    <span class="meta">Posted by cuiming on January 10, 2020</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <!-- Multi-Lingual -->
+                
+
+				<blockquote>
+  <p>A Continual Pre-Training Framework for Language Understanding</p>
+</blockquote>
+
+<h4 id="摘要">摘要</h4>
+
+<p>最近预训练模型在各种各样的语言理解任务上都获得了最好的结果。<font color="#DC3540">当前的预训练任务都是通过几个简单的任务来训练模型，从而捕获单词或句子的共现信息。但是除了共现信息外，训练语料中还包含了词法、句法以及语义等有价值的信息。为了从训练预料中提取词法、句法和语义信息，论文提出了一个名为ERNIE 2.0的改进预训练框架，该框架以递进的方式构建预训练任务，然后通过多任务学习的方式在这些任务上预训练模型。</font>&gt;在此框架的基础上，论文构建多个任务并训练ERINE2.0 模型，以捕获训练数据中的词法、句法和语义方面的信息。实验结果表明ERNIE 2.0 模型在16个任务上优于BERT和XLNET，包括GLUE英文任务以及一些类似的中文任务。<a href="https://github.com/PaddlePaddle/ERNIE.">项目源码和预训练模型地址</a></p>
+
+<h4 id="引言">引言</h4>
+
+<p>预训练语言表示比如ELMO，OpenAI GPT，BERT，ERNIE 1.0以及XLNET已经被证明在各种各样的语言理解任务中都有很好的效果，比如情感分类，自然语言推理（Natural Language Inference，NLI）,命名实体识别等等。</p>
+
+<p>通常预训练模型都是基于单词和句子的共现来训练。但是在训练预料中的除了共现信息外，词法、句法和语义信息同样值得提取。诸如人名、地名、机构名等命名实体可能包含一些概念信息。</p>
+
+<p>ERNIE框架支持通过不断进行多任务学习来不断引入各种定制任务。 当执行一项或多项新任务时，连续多任务学习方法可以有效地同时训练新引入的任务和原始任务，而不会忘记先前学习的知识。 这样，我们的框架可以根据之前掌握的参数训练增量式分布的表示形式。 此外，在此框架中，所有任务共享相同的编码网络，从而使跨不同任务的词汇，句法和语义信息的编码成为可能。</p>
+
+<p>论文的贡献主要体现在以下几个方面：</p>
+
+<ul>
+  <li>论文提出一种改进的预训练框架ERINE 2.0，该框架可以以增量的方式支持定制化训练任务和改进的多任务学习。</li>
+  <li>论文构建了三类的非监督语言处理任务用于验证该框架的有效性。实验结果表明ERNIE 2.0 模型在16个任务上优于BERT和XLNET。</li>
+  <li>ERNIE 2.0基于英文的预训练和fine-tuning<a href="https://github.com/PaddlePaddle/ERNIE">代码地址</a></li>
+</ul>
+
+<h4 id="相关工作">相关工作</h4>
+
+<ol>
+  <li>
+    <p>语言表示的无监督学习</p>
+
+    <p>用大量的无标注数据，通过预训练语言模型的方式学习通用的语言表示是高效的。传统方法通常专注于上下文无关的词嵌入。Word2Vec（Mikolov等人，2013）和GloVe（Pennington，Socher和Manning，2014）等方法基于大型语料库中单词共现信息来学习固定的词嵌入。</p>
+
+    <p>最近，提出了一些上下文相关的语言表示方式，在各类的NLP任务中都取得了最好的结果。ELMo（Peters et al.2018）建议从语言模型中提取上下文相关的功能。OpenAI GPT（Radford等人，2018）通过调整Transformer（Vaswani等人，2017）增强了上下文相关的嵌入表示。BERT（Devlin等人，2018）采用了遮掩语言模型(Masked language model,MLM)，同时在预训练中添加了下一个句子预测任务。XLM (Lample and Conneau 2019)集成了依赖单语言数据的无监督学习方法和利用平行双语数据的监督学习方法，来学习跨语言的语言模型。MT-DNN(Liu et al. 2019)在预训练模型的基础上学习了一些GLUE中的监督学习任务取得了更好的结果，相比于其它预训练模型而言它在其它监督学习任务上也表现更为优异。<font color="blue">XLNET (Yang et al. 2019)使用Transformer-XL((Dai et al. 2019)并提出了一种通用自回归预训练方法来学习双向上下文。</font></p>
+  </li>
+  <li>
+    <p>持续学习(Continual Learning,CL)</p>
+
+    <p>持续学习旨在按顺序训练几个任务的模型，以便在学习新任务时模型仍然记得先前学习的任务。这些方法受到人类学习过程的启发，因为人类能够通过不断积累学习到的信息，从而有效的开发新技能。通过持续学习，由于先前训练中获得的知识，该模型应该能够在新任务上表现更好。</p>
+  </li>
+</ol>
+
+<h4 id="ernie-20-框架">ERNIE 2.0 框架</h4>
+
+<p><img src="/img/ernie/image-20200109143946566.png" alt="image-20200109143946566" /></p>
+
+<p>如图1所示，ERNIE2.0框架是基于广泛使用的预训练和微调架构构建的。与其它以少量的预训练目标进行训练不同的是，ERNIE2.0可以不断的引入大量各种各样的预训练任务，以帮助模型有效的学习词汇，句法和语义信息。基于此，ERNIE2.0框架通过持续多任务学习不断更新预训练模型。微调的时候，首先使用预先训练的参数初始化ERNIE模型，然后再使用来自特定任务的数据进行微调。</p>
+
+<center class="half"> 
+	<table border="0" align="center" cellpadding="0" cellspacing="0"><tr><td>
+	<img src="/img/ernie/image-20200109175453662.png" alt="image-20200109175453662.png" style="zoom:80%" /></td><td> 
+	<img src="/img/ernie/image-20200109175513036.png" alt="image-20200109175513036.png" style="zoom:50%" /> </td></tr></table>
+</center>
+
+<ol>
+  <li>
+    <p>持续预训练</p>
+
+    <p>持续预训练的过程包含两个步骤：1）不断构建设计大数据和先验知识的无监督预训练任务 2）通过持续的多任务学习不断的更新ERNIE模型</p>
+
+    <p><b><font color="LightSeaGreen">预训练任务构建</font></b>  我们每次可以构建不同类型的任务，包括单词感知任务、结构感知任务和语义感知任务。所有这些预训练任务都依赖于自监督或者弱监督信号，这些信号可以从海量数据中获取，而无需人工标注。诸如命名实体，短语，篇章关系之类的先验知识可用于从大规模数据中生成标签。</p>
+
+    <p><b><font color="LightSeaGreen">持续多任务学习</font></b> ERNIE 2.0 框架旨在从不同任务中学习词法、句法与语法信息。因此，有两个主要挑战需要客服。1）如何以连续的方式训练任务而又不会忘记以前学到的知识 2）如何有效的预训练这些任务。我们提出了一种持续的多任务学习方法来解决这两个问题。每当有新任务出现时，持续多任务学习方法首先使用先前学习的参数来初始化模型，然后同时训练新引入的任务和原始任务。这将确保学习的参数对先前学习的知识进行记忆。我们通过为每个任务分配N个训练迭代来解决训练效率的问题。框架需要针对每个任务自动将这N次迭代分配给不同阶段的训练。通过这种方式，我们既可以保证模型的训练效率，又不会忘记先前训练学习到的知识。</p>
+
+    <p>​		图2说明了论文中的方法与多任务学习和持续学习的区别。尽管从头进行多任务学习可以同时学习多个任务，但是在训练之前必须好所有定制的预训练任务。因此这种方法所花费的时间和持续学习花费的时间一样多，甚至会更多。传统的持续学习方法在每个阶段仅通过一项任务训练模型，这样的缺点是它可能会遗忘先前学习到的知识。</p>
+
+    <p>​		如图4所示，我们在每个阶段持续进行的多任务学习的体系结构包含一系列共享文本编码层，以对上下文信息进行编码，这些层可以使用RNN或多层自注意力层堆叠的深度Transformer。编码层的参数可以被所有学习任务更新。论文框架中有两种损失函数一个是句子级别的损失函数，另一个是词级别的损失，这个和BERT的损失函数类似。每个预训练任务都有自己的随时函数，在预训练期间，可以将句子级别的损失函数与词级别的损失结合起来以不断更新模型。</p>
+  </li>
+  <li>
+    <p>针对实际任务进行fine-tuning</p>
+
+    <p>通过对特定任务的监督数据进行微调，预训练模型能够更好的适应不同的语言理解任务，比如QA(question answering)，NLI(Natural Language Inference)和语义相似度。每个下游任务都有针对各自任务fine-tuning后的模型。</p>
+  </li>
+</ol>
+
+<h4 id="ernie-20模型">ERNIE 2.0模型</h4>
+
+<p>为了验证框架的有效性，论文构建的三种不同的无监督语言处理任务并开发了ERNIE 2.0预训练模型。本节主要介绍模型的实现。</p>
+
+<p><img src="/img/ernie/image-20200109194729209.png" alt="image-20200109194729209" /></p>
+
+<ol>
+  <li>
+    <p>模型结构</p>
+
+    <p><b><font color="LightSeaGreen">Tranformer Encoder </font></b> 该模型使用多层Transformer作为基本编码器，就像其它预训练模型一样，比如GPT，BERT，XLM。transformer可以通过自注意力机制捕获序列中每个词的上下文信息，并生成一系列上下文相关的嵌入向量。给定一个序列，添加特殊的标识符[CLS]到序列的第一个位置。此外，在多个输入分段任务时，用符号[SEP]作为输入段的分隔符。</p>
+
+    <p><b><font color="LightSeaGreen">Task Embedding</font></b>  模型通过提供任务向量来表示不同任务的特点。我们用0到N的ID表示不同的任务。每一个任务id都被赋予了唯一一个任务向量。对应的词，片段，位置和任务向量被作为模型的输入。在fine-tuning阶段可以用任意的任务ID来初始化模型。模型结构如图3所示。</p>
+
+    <p><b><font color="LightSeaGreen">Pre-training Tasks</font></b>  我们构建了三种不同的任务来获取训练语料不同方面的信息。单词感知任务来捕获词法信息，结构感知任务来不说句法信息，语义感知任务用来捕获语义信息。</p>
+  </li>
+  <li>
+    <p>词感知预训练任务</p>
+
+    <p><b><font color="LightSeaGreen">Knowledge Tasks</font></b>  ERNIE 1.0 提出了一种知识整合的策略来增强表示。它引入了短语屏蔽和命名实体屏蔽，并预测了整个被屏蔽的短语和命名实体，以帮助模型学习局部上下文和全局上下文中的依赖信息。 我们使用此任务来训练模型的初始版本。</p>
+
+    <p><b><font color="LightSeaGreen" style="font-family:SimHei">大写预测任务</font></b> 大写单词相比于句子中的其它词而言通常包含特定的语义信息。示例模型在诸如命名实体识别之类的任务中具有一些优势，而非示例模型则更适合其他一些任务。 为了结合两种模型的优点，我们添加了一项任务来预测单词是否大写。</p>
+
+    <p><b><font color="LightSeaGreen" style="font-family:SimHei">词文档关系预测任务</font></b>  该任务预测一个片段中的词是否出现在原始文档的其它片段中。从经验上讲，出现在文档许多片段中的单词通常是常用单词或与文档主题相关的相关的。因此通过识别在文档片段中频繁出现的词，该任务可以可以使模型能够在某种程度上捕获文档的关键词信息。</p>
+  </li>
+  <li>
+    <p>结构感知预训练任务</p>
+
+    <p><b><font color="LightSeaGreen" style="font-family:SimHei">句子重排序任务</font></b>  该任务旨在学习句子之间的关系。在此任务的预训练过程中，将给定的段落随机分为1到m个片段，然后所有的所有的片段随机排列组合。预训练任务的目标就是把这些片段重新组织，这个问题可以建模为一个k分类问题其中 $k=\sum_{n=1}^{m} n !$，从经验来看句子重排序任务可以使预训练模型学习文档中句子之间的关系。</p>
+
+    <p><b><font color="LightSeaGreen" style="font-family:SimHei">句子距离任务</font></b>  我们还构建了一个预训练任务用文档级信息来学习句子距离。该任务被建模为3分类问题，0表示两个句子在同一个文档中并相邻，1表示两个句子在同一个文档中但不相邻，2表示两个句子来源于不同的文档。</p>
+  </li>
+  <li>
+    <p>语义感知预训练任务</p>
+
+    <p><b><font color="LightSeaGreen">Discourse Relation Task</font></b>  除了句子距离以外，还引入了一个学习两个句子之间语义和修饰关系的任务。我们使用Sileo等人构建的数据来训练针对英语任务的预训练模型。按照Sileo等人使用的方法，我们还自动构建了一个中文数据集进行预训练。</p>
+
+    <p><b><font color="LightSeaGreen">IR Relevance Task </font></b>  我们构建了一个关于query与title关系的3分类任务来学习信息检索中的短文本相关性。我们将查询作为第一句话，标题作为第二句话，商业搜索引擎的搜索日志数据作为预训练数据。此任务中有3中标签，”0”表示query和title强相关，意味着用户在输入查询后点击标题；”1”表示不可靠，意味着用户输入查询时，这些标题会显示在搜索结果中，但不会被点击；”2”表示查询和标题在语义信息方面是完全无关和随机的。</p>
+  </li>
+</ol>
+
+<h4 id="实验">实验</h4>
+
+<p>论文对比分析了ERNIE 2.0与效果最好的预训练模型。对于英文任务，对比了ERNIE 2.0，BERT，XLNET在GLUE任务上的效果。对于中文任务，对比分析了ERNIE 2.0，BERT，ERNIE 1.0在多个中文数据集上的效果。此外，我们还将我们的方法与多任务学习和传统的持续学习进行比较。</p>
+
+<p><img src="/img/ernie/image-20200110102237582.png" alt="image-20200110102237582" /></p>
+
+<ol>
+  <li>
+    <p>预训练和实现</p>
+
+    <p><b><font color="LightSeaGreen" style="font-family:SimHei">预训练数据</font></b>  和BERT类似，英文语料中的有些数据是从Wikipedia和BookCorpus爬取过来的。此外我们还从Reddit上收集了一些数据，并用Disovery数据作为篇章关系数据。对于中文语料，我们从搜索引擎收集了各种各样的数据，例如百科全书，新闻，对话，信息检索和篇章关系数据。关于训练数据的详细信息如表2所示，预训练数据和训练任务的关系如表1所示。</p>
+
+    <p><img src="/img/ernie/image-20200110101211692.png" alt="image-20200110101211692" /></p>
+
+    <p><b><font color="LightSeaGreen" style="font-family:SimHei">预训模型参数</font></b>  为了和BERT模型对比，我们使用和BERT相同的参数设置。base版模型包含12层，12个自注意力头和隐藏层的维度是768维；large版模型包含24层，16个自注意力头，隐藏层的的维度是1024维。XLNET模型的设置和BERT相同。</p>
+  </li>
+</ol>
+
+<center class="half"> 
+	<table border="0" align="center" cellpadding="0" cellspacing="0"><tr><td>
+	<img src="/img/ernie/image-20200110102809661.png" alt="image-20200109175453662.png" style="zoom:80%" /></td><td> 
+	<img src="/img/ernie/image-20200110103143386.png" alt="image-20200109175513036.png" style="zoom:80%" /> </td></tr></table>
+</center>
+
+<p>ERNIE 2.0 base版模型在48块NVidia v100 GPU卡上训练，large版模型用了64块NVidia v100 GPU。模型在百度开发的端到端预训练平台PaddlePaddle上训练。优化器选择Adam, 其中$\beta_{1}=0.9,\beta_{2}=0.98$ ,英文模型的学习率为5e-5，中文模型学习率为1.28e-4，每个预训练任务的前4000步预热。通过float16运算，我们设法加快了训练速度并减少了模型的内存使用量。 对每个预训练任务进行训练，直到预训练任务的度量收敛为止。</p>
+
+<ol>
+  <li>
+    <p>任务微调</p>
+
+    <p><b><font color="LightSeaGreen" style="font-family:SimHei">英文任务</font></b> 作为自然语言理解的多任务基准和分析平台，GLUE通常用于评估模型的性能。 我们还在GLUE上测试了ERNIE 2.0的性能。 具体而言，GLUE涵盖了各种NLP数据集，其详细信息如下：</p>
+
+    <p><img src="/img/ernie/image-20200110182418741.png" alt="image-20200110182418741" /></p>
+
+    <p><b><font color="LightSeaGreen" style="font-family:SimHei">中文任务</font></b> 我们对9个中文NLP任务进行了广泛的实验，包括机器阅读理解，命名实体识别，自然语言推论，语义相似度，情感分析和QA。 具体来说，选择以下中文数据集来评估ERNIE 2.0在中文任务上的效果：</p>
+
+    <ul>
+      <li>机器阅读理解(MRC):CMRC(2018)</li>
+      <li>命名实体识别(NER):MSRA-NER(2006)</li>
+      <li>情感分析(SA):ChnSentiCorp</li>
+      <li>语义相似度(SS):LCQMC</li>
+      <li>
+        <p>问答(QA):NLPCC-DBQA</p>
+
+        <p><img src="/img/ernie/image-20200110183040339.png" alt="" /></p>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<h4 id="结论">结论</h4>
+
+<p>论文提出了一种名为ERNINE 2.0的持续预训练框架，在该框架下可以通过持续学习的方式逐步构建与学习预训练任务。在此框架下训练了涵盖语言不同方面的预训练模型。</p>
+
+<p>参考文献</p>
+
+
+                <hr style="visibility: hidden;">
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2020/01/03/elmo/" data-toggle="tooltip" data-placement="top" title="「论文」预训练之ELMO(一)">
+                        Previous<br>
+                        <span>「论文」预训练之ELMO(一)</span>
+                        </a>
+                    </li>
+                    
+                    
+                </ul>
+                <hr style="visibility: hidden;">
+
+                
+                <!-- disqus 评论框 start -->
+                <div class="comment">
+                    <div id="disqus_thread" class="disqus-thread"></div>
+                </div>
+                <!-- disqus 评论框 end -->
+                
+
+                
+                <!-- 网易云跟帖 评论框 start -->
+                <div id="cloud-tie-wrapper" class="cloud-tie-wrapper"></div>
+                <!-- 网易云跟帖 评论框 end -->
+                
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+
+
+<section>
+    
+        <hr class="hidden-sm hidden-xs">
+    
+    <h5><a href="/archive/">FEATURED TAGS</a></h5>
+    <div class="tags">
+        
+        
+        
+        </a>
+        
+        
+                <a data-sort="0000" 
+                    href="/archive/?tag=%E9%A2%84%E8%AE%AD%E7%BB%83"
+                    title="预训练"
+                    rel="2">预训练</a>
+        
+                <a data-sort="0000" 
+                    href="/archive/?tag=NLP"
+                    title="NLP"
+                    rel="2">NLP
+    </div>
+</section>
+
+
+                <!-- Friends Blog -->
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+<!-- add support for mathjax by voleking-->
+<!--  -->
+
+
+<!-- 网易云跟帖JS代码 start -->
+<script src="https://img1.cache.netease.com/f2e/tie/yun/sdk/loader.js"></script>
+<script>
+  var cloudTieConfig = {
+    url: document.location.href, 
+    sourceId: "",
+    productKey: "de25fc98a6fe48b3bc8a7ae765da99a0",
+    target: "cloud-tie-wrapper"
+  };
+  var yunManualLoad = true;
+  Tie.loader("aHR0cHM6Ly9hcGkuZ2VudGllLjE2My5jb20vcGMvbGl2ZXNjcmlwdC5odG1s", true);
+</script>
+<!-- 网易云跟帖JS代码 end -->
+
+
+
+
+<!-- disqus 公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "hux";
+    var disqus_identifier = "/2020/01/10/ERNIE-2";
+    var disqus_url = "http://0.0.0.0:4000/2020/01/10/ERNIE-2/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'right',
+          // icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <!-- SNS Link -->
+                
+
+
+<ul class="list-inline text-center">
+
+
+  
+  
+  
+  <li>
+    <a target="_blank" href="https://www.zhihu.com/people/bing-feng-yi-ren">
+      <span class="fa-stack fa-lg">
+        <i class="fa fa-circle fa-stack-2x"></i>
+        <i class="fa  fa-stack-1x fa-inverse">知</i>
+      </span>
+    </a>
+  </li>
+  
+  
+  <li>
+    <a target="_blank" href="http://weibo.com/bingfengyiren">
+      <span class="fa-stack fa-lg">
+        <i class="fa fa-circle fa-stack-2x"></i>
+        <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+      </span>
+    </a>
+  </li>
+  
+  
+  
+  <li>
+    <a target="_blank" href="https://github.com/bingfengyiren">
+      <span class="fa-stack fa-lg">
+        <i class="fa fa-circle fa-stack-2x"></i>
+        <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+      </span>
+    </a>
+  </li>
+  
+  
+</ul>
+
+                <p class="copyright text-muted">
+                    Copyright &copy; CuiMing's Blog 2020
+                    <br>
+                    Powered by <a href="http://bingfengyiren.github.io">CuiMing Blog</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=bingfengyiren&repo=bingfengyiren.github.io&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<!-- Currently, only navbar scroll-down effect at desktop still depends on this -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js "></script>
+
+<!-- Service Worker -->
+
+<script src="/js/snackbar.js "></script>
+<script src="/js/sw-registration.js "></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!--
+     Because of the native support for backtick-style fenced code blocks
+     right within the Markdown is landed in Github Pages,
+     From V1.6, There is no need for Highlight.js,
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/
+     - https://github.com/jneen/rouge/wiki/list-of-supported-languages-and-lexers
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+
+
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-49627206-1';
+    var _gaDomain = 'huangxuan.me';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+
+        // interop with multilangual 
+        if ('' == 'true') {
+            _containerSelector = 'div.post-container.active'
+        } else {
+            _containerSelector = 'div.post-container'
+        }
+
+        // init
+        var P = $(_containerSelector),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+
+        // clean
+        $(selector).html('')
+
+        // appending
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Multi-Lingual -->
+
+
+
+
+<!-- Image to hack wechat -->
+<img src="/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
