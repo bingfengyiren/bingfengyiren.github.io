@@ -5,9 +5,161 @@
     <description>关于程序与设计、黑客与画家 | 黄玄，Web &amp; Mobile Lover，Software Engineer，UX Designer | 这里是 @Hux黄玄 的个人博客，与你一起发现更大的世界。</description>
     <link>http://0.0.0.0:4000/</link>
     <atom:link href="http://0.0.0.0:4000/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sat, 11 Jan 2020 22:15:24 +0800</pubDate>
-    <lastBuildDate>Sat, 11 Jan 2020 22:15:24 +0800</lastBuildDate>
+    <pubDate>Fri, 21 Feb 2020 15:23:41 +0800</pubDate>
+    <lastBuildDate>Fri, 21 Feb 2020 15:23:41 +0800</lastBuildDate>
     <generator>Jekyll v4.0.0</generator>
+    
+      <item>
+        <title>「笔记」指标计算</title>
+        <description>&lt;h4 id=&quot;1-mapmean-average-precision平均正确率&quot;&gt;&lt;b&gt;&lt;font color=&quot;LightSeaGreen&quot;&gt;1. MAP(Mean Average Precision),平均正确率&lt;/font&gt;&lt;/b&gt;&lt;/h4&gt;
+
+&lt;h5 id=&quot;11-计算方式&quot;&gt;1.1 计算方式&lt;/h5&gt;
+
+&lt;p&gt;MAP指标能从整体上反映模型的检索性能,单次搜索的正确率(AP)计算如下：
+&lt;script type=&quot;math/tex&quot;&gt;AP=\frac{\sum_{k=1}^{n}P(k)\times rel(k)}{相关文档个数} \tag{1}&lt;/script&gt;
+其中，$P(k)$为前k个结果的准确率,$rel(k)$表示第k个文档是否相关，相关则为1，不相关为0，所以多次搜索结果求平均即为MAP,
+&lt;script type=&quot;math/tex&quot;&gt;MAP=\frac{\sum_{q=1}^{Q}AP_{i}}{Q} \tag{2}&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;其中Q为查询的个数。&lt;/p&gt;
+
+&lt;h5 id=&quot;12-使用示例&quot;&gt;1.2 使用示例&lt;/h5&gt;
+
+&lt;p&gt;假设query1搜索返回了6个文档，每个文档的相关情况为1，1，0，1，0，1&lt;/p&gt;
+
+&lt;p&gt;假设query2搜索返回4个文档，每个文档的相关情况为1，0，1，1，则MAP的计算方式为：&lt;/p&gt;
+
+&lt;center&gt;
+
+$$
+AP_{1} = \frac{1\times1 + 1\times1+0.75\times1+0.67\times1}{4}=0.855\\
+AP_{2} = \frac{1\times1+0.67\times1+0.75\times1}{3}=0.806\\
+MAP= \frac{AP_{1}+AP_{2}}{2} = 0.83
+$$
+
+&lt;/center&gt;
+
+&lt;h5 id=&quot;13-缺点&quot;&gt;1.3 缺点&lt;/h5&gt;
+
+&lt;p&gt;MAP指标只区分了相关和不相关，而没有相关度的差异。&lt;/p&gt;
+
+&lt;h4 id=&quot;2-cgcumulative-gain累积增益&quot;&gt;&lt;b&gt;&lt;font color=&quot;LightSeaGreen&quot;&gt;2. CG（Cumulative Gain），累积增益&lt;/font&gt;&lt;/b&gt;&lt;/h4&gt;
+
+&lt;h5 id=&quot;21-计算方式&quot;&gt;2.1 计算方式&lt;/h5&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;CG@K = \sum_{i=1}^{k}rel_{i} \tag{3}&lt;/script&gt;
+
+&lt;p&gt;其中$rel_i$表示第$i$个搜索结果的相关程度，相关程度可以根据自己业务情况定义,比如&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;相关程度&lt;/th&gt;
+      &lt;th&gt;值&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Good&lt;/td&gt;
+      &lt;td&gt;3&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Fair&lt;/td&gt;
+      &lt;td&gt;2&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Simple&lt;/td&gt;
+      &lt;td&gt;1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Bad&lt;/td&gt;
+      &lt;td&gt;0&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h5 id=&quot;22-使用示例&quot;&gt;2.2 使用示例&lt;/h5&gt;
+
+&lt;p&gt;假设query1搜索返回了6个文档，每个文档的相关情况为2，1，0，3，0，1&lt;/p&gt;
+
+&lt;p&gt;假设query2搜索返回4个文档，每个文档的相关情况为3，0，1，2&lt;/p&gt;
+
+&lt;center&gt;
+
+$$
+CG@6_{1} = 2+1+3+1 = 7\\
+CG@6_{2} = 3+1+2 = 6\\
+CG = \frac{CG@6_{1}+CG@6_{2}}{2} = 6.5
+$$
+
+&lt;/center&gt;
+
+&lt;h5 id=&quot;23-不足&quot;&gt;2.3 不足&lt;/h5&gt;
+
+&lt;p&gt;CG虽然增加了相关程度的权重，但是因为是权重累积，所以忽略了排序位置的影响，比如对于搜索排序结果(3, 1,0)、(0,1,3)对于CG指标而言结果都是一样的，这显然是不合理的。&lt;/p&gt;
+
+&lt;h4 id=&quot;3-dcgdiscounted-cumulative-gain折扣累积增益&quot;&gt;&lt;b&gt;&lt;font color=&quot;LightSeaGreen&quot;&gt;3. DCG（Discounted Cumulative Gain），折扣累积增益&lt;/font&gt;&lt;/b&gt;&lt;/h4&gt;
+
+&lt;h5 id=&quot;31-计算方式&quot;&gt;3.1 计算方式&lt;/h5&gt;
+
+&lt;p&gt;DCG在CG的基础上增加了位置信息的计算，计算方式如下：
+&lt;script type=&quot;math/tex&quot;&gt;DCG@K=\sum_{i=1}^{k}\frac{rel_i}{log_{2}(i+1)} \tag{4}&lt;/script&gt;&lt;/p&gt;
+
+&lt;h5 id=&quot;32-使用示例&quot;&gt;3.2 使用示例&lt;/h5&gt;
+
+&lt;p&gt;假设query1搜索返回了6个文档，每个文档的相关情况为2，1，0，3，0，1&lt;/p&gt;
+
+&lt;p&gt;假设query2搜索返回4个文档，每个文档的相关情况为3，0，1，2&lt;/p&gt;
+
+&lt;center&gt;
+
+$$
+DCG@6_{1}=\frac{2}{log_{2}{2}}+\frac{1}{log_{2}{3}}+\frac{3}{log_{2}{5}}+\frac{1}{log_{2}{7}}=4.28\\
+DCG@6_{2}=\frac{3}{log_{2}{2}}+\frac{1}{log_{2}{4}}+\frac{2}{log_{2}{5}}=3.86\\
+DCG@6 = \frac{DCG@6_{1}+DCG@6_{2}}{2} = 4.07
+$$
+
+&lt;/center&gt;
+
+&lt;h5 id=&quot;33-不足&quot;&gt;3.3 不足&lt;/h5&gt;
+
+&lt;p&gt;DCG虽然引入了位置损失，但是不同的搜索结果对应的文档个数，以及分值都不一致，所以DCG的取值范围是动态变化的，这就对于结果的好还是不好给出明确的判定。&lt;/p&gt;
+
+&lt;h4 id=&quot;4-ndcgnormalized-dcg归一化折扣累积增益&quot;&gt;&lt;b&gt;&lt;font color=&quot;LightSeaGreen&quot;&gt;4. NDCG（Normalized DCG），归一化折扣累积增益&lt;/font&gt;&lt;/b&gt;&lt;/h4&gt;
+
+&lt;h5 id=&quot;41-计算方式&quot;&gt;4.1 计算方式&lt;/h5&gt;
+
+&lt;p&gt;既然要做归一化，那拿什么做归一化呢？这里就引入IDCG的概念，IDCG其实就是把排序结果按照相关度降序排列后重新计算的DCG。这样就可以把指标归一化到0-1的范围内，约接近1说明约接近理想排序效果。
+&lt;script type=&quot;math/tex&quot;&gt;NDCG@K=\frac{DCG@K}{IDCG@K} \tag{5}&lt;/script&gt;&lt;/p&gt;
+
+&lt;h5 id=&quot;42-使用示例&quot;&gt;4.2 使用示例&lt;/h5&gt;
+
+&lt;p&gt;假设query1搜索返回了6个文档，每个文档的相关情况为2，1，0，3，0，1&lt;/p&gt;
+
+&lt;p&gt;假设query2搜索返回4个文档，每个文档的相关情况为3，0，1，2&lt;/p&gt;
+
+&lt;center&gt;
+
+$$
+IDCG@6_{1} =\frac{3}{log_{2}2}+\frac{2}{log_{2}3}+\frac{1}{log_{2}4}+\frac{1}{log_{2}5}=5.19\\
+IDCG@6_{2} = \frac{3}{log_{2}2}+\frac{2}{log_{2}3}+\frac{1}{log_{2}4} = 4.76\\
+NDCG@6_{1} = \frac{DCG@6_{1}}{IDCG@6_{1}} =\frac{4.28}{5.19}=0.82 \\
+NDCG@6_{2} = \frac{DCG@6_{2}}{IDCG@6_{2}} =\frac{3.86}{4.76}=0.81\\
+NDCG = \frac{NDCG@6_{1} +NDCG@6_{2}}{2}=0.815
+$$
+
+&lt;/center&gt;
+
+</description>
+        <pubDate>Sat, 22 Feb 2020 04:00:00 +0800</pubDate>
+        <link>http://0.0.0.0:4000/2020/02/22/search-metrics/</link>
+        <guid isPermaLink="true">http://0.0.0.0:4000/2020/02/22/search-metrics/</guid>
+        
+        <category>指标计算</category>
+        
+        <category>NLP</category>
+        
+        
+      </item>
     
       <item>
         <title>「翻译」ERNIE 2.0</title>
@@ -17,7 +169,7 @@
 
 &lt;h4 id=&quot;摘要&quot;&gt;摘要&lt;/h4&gt;
 
-&lt;p&gt;最近预训练模型在各种各样的语言理解任务上都获得了最好的结果。&lt;font color=&quot;#DC3540&quot;&gt;当前的预训练任务都是通过几个简单的任务来训练模型，从而捕获单词或句子的共现信息。但是除了共现信息外，训练语料中还包含了词法、句法以及语义等有价值的信息。为了从训练预料中提取词法、句法和语义信息，论文提出了一个名为ERNIE 2.0的改进预训练框架，该框架以递进的方式构建预训练任务，然后通过多任务学习的方式在这些任务上预训练模型。&lt;/font&gt;&amp;gt;在此框架的基础上，论文构建多个任务并训练ERINE2.0 模型，以捕获训练数据中的词法、句法和语义方面的信息。实验结果表明ERNIE 2.0 模型在16个任务上优于BERT和XLNET，包括GLUE英文任务以及一些类似的中文任务。&lt;a href=&quot;https://github.com/PaddlePaddle/ERNIE.&quot;&gt;项目源码和预训练模型地址&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;​		最近预训练模型在各种各样的语言理解任务上都获得了最好的结果。&lt;font color=&quot;#DC3540&quot;&gt;当前的预训练任务都是通过几个简单的任务来训练模型，从而捕获单词或句子的共现信息。但是除了共现信息外，训练语料中还包含了词法、句法以及语义等有价值的信息。为了从训练预料中提取词法、句法和语义信息，论文提出了一个名为ERNIE 2.0的改进预训练框架，该框架以递进的方式构建预训练任务，然后通过多任务学习的方式在这些任务上预训练模型。&lt;/font&gt;&amp;gt;在此框架的基础上，论文构建多个任务并训练ERINE2.0 模型，以捕获训练数据中的词法、句法和语义方面的信息。实验结果表明ERNIE 2.0 模型在16个任务上优于BERT和XLNET，包括GLUE英文任务以及一些类似的中文任务。&lt;a href=&quot;https://github.com/PaddlePaddle/ERNIE.&quot;&gt;项目源码和预训练模型地址&lt;/a&gt;&lt;/p&gt;
 
 &lt;h4 id=&quot;引言&quot;&gt;引言&lt;/h4&gt;
 
@@ -179,47 +331,10 @@
 &lt;h4 id=&quot;结论&quot;&gt;结论&lt;/h4&gt;
 
 &lt;p&gt;论文提出了一种名为ERNINE 2.0的持续预训练框架，在该框架下可以通过持续学习的方式逐步构建与学习预训练任务。在此框架下训练了涵盖语言不同方面的预训练模型。&lt;/p&gt;
-
-&lt;p&gt;参考文献&lt;/p&gt;
 </description>
         <pubDate>Fri, 10 Jan 2020 04:00:00 +0800</pubDate>
         <link>http://0.0.0.0:4000/2020/01/10/ERNIE-2/</link>
         <guid isPermaLink="true">http://0.0.0.0:4000/2020/01/10/ERNIE-2/</guid>
-        
-        <category>预训练</category>
-        
-        <category>NLP</category>
-        
-        
-      </item>
-    
-      <item>
-        <title>「论文」预训练之ELMO(一)</title>
-        <description>&lt;blockquote&gt;
-  &lt;p&gt;“Deep contextualized word representations”&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h4 id=&quot;内容摘要&quot;&gt;内容摘要&lt;/h4&gt;
-
-&lt;p&gt;论文介绍了一种新型的深度上下文词表示模型，该模型既可以对词的复杂特征进行建模，比如：语法、语义特征，也可以&lt;/p&gt;
-
-&lt;h4 id=&quot;优化方向&quot;&gt;优化方向&lt;/h4&gt;
-
-&lt;h4 id=&quot;核心算法&quot;&gt;核心算法&lt;/h4&gt;
-
-&lt;p&gt;$
-D(P | Q)=\sum_{x \in X} P(x) \log \frac{P(x)}{Q(x)}
-$&lt;/p&gt;
-
-&lt;h4 id=&quot;论文效果&quot;&gt;论文效果&lt;/h4&gt;
-
-&lt;h4 id=&quot;代码实现&quot;&gt;代码实现&lt;/h4&gt;
-
-&lt;h4 id=&quot;参考文章&quot;&gt;参考文章&lt;/h4&gt;
-</description>
-        <pubDate>Fri, 03 Jan 2020 04:00:00 +0800</pubDate>
-        <link>http://0.0.0.0:4000/2020/01/03/elmo/</link>
-        <guid isPermaLink="true">http://0.0.0.0:4000/2020/01/03/elmo/</guid>
         
         <category>预训练</category>
         

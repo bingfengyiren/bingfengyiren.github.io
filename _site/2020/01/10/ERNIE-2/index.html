@@ -254,7 +254,7 @@
 
 <h4 id="摘要">摘要</h4>
 
-<p>最近预训练模型在各种各样的语言理解任务上都获得了最好的结果。<font color="#DC3540">当前的预训练任务都是通过几个简单的任务来训练模型，从而捕获单词或句子的共现信息。但是除了共现信息外，训练语料中还包含了词法、句法以及语义等有价值的信息。为了从训练预料中提取词法、句法和语义信息，论文提出了一个名为ERNIE 2.0的改进预训练框架，该框架以递进的方式构建预训练任务，然后通过多任务学习的方式在这些任务上预训练模型。</font>&gt;在此框架的基础上，论文构建多个任务并训练ERINE2.0 模型，以捕获训练数据中的词法、句法和语义方面的信息。实验结果表明ERNIE 2.0 模型在16个任务上优于BERT和XLNET，包括GLUE英文任务以及一些类似的中文任务。<a href="https://github.com/PaddlePaddle/ERNIE.">项目源码和预训练模型地址</a></p>
+<p>​		最近预训练模型在各种各样的语言理解任务上都获得了最好的结果。<font color="#DC3540">当前的预训练任务都是通过几个简单的任务来训练模型，从而捕获单词或句子的共现信息。但是除了共现信息外，训练语料中还包含了词法、句法以及语义等有价值的信息。为了从训练预料中提取词法、句法和语义信息，论文提出了一个名为ERNIE 2.0的改进预训练框架，该框架以递进的方式构建预训练任务，然后通过多任务学习的方式在这些任务上预训练模型。</font>&gt;在此框架的基础上，论文构建多个任务并训练ERINE2.0 模型，以捕获训练数据中的词法、句法和语义方面的信息。实验结果表明ERNIE 2.0 模型在16个任务上优于BERT和XLNET，包括GLUE英文任务以及一些类似的中文任务。<a href="https://github.com/PaddlePaddle/ERNIE.">项目源码和预训练模型地址</a></p>
 
 <h4 id="引言">引言</h4>
 
@@ -417,19 +417,17 @@
 
 <p>论文提出了一种名为ERNINE 2.0的持续预训练框架，在该框架下可以通过持续学习的方式逐步构建与学习预训练任务。在此框架下训练了涵盖语言不同方面的预训练模型。</p>
 
-<p>参考文献</p>
-
 
                 <hr style="visibility: hidden;">
                 <ul class="pager">
                     
-                    <li class="previous">
-                        <a href="/2020/01/03/elmo/" data-toggle="tooltip" data-placement="top" title="「论文」预训练之ELMO(一)">
-                        Previous<br>
-                        <span>「论文」预训练之ELMO(一)</span>
+                    
+                    <li class="next">
+                        <a href="/2020/02/22/search-metrics/" data-toggle="tooltip" data-placement="top" title="「笔记」指标计算">
+                        Next<br>
+                        <span>「笔记」指标计算</span>
                         </a>
                     </li>
-                    
                     
                 </ul>
                 <hr style="visibility: hidden;">
@@ -477,11 +475,6 @@
         
         </a>
         
-        
-                <a data-sort="0000" 
-                    href="/archive/?tag=%E9%A2%84%E8%AE%AD%E7%BB%83"
-                    title="预训练"
-                    rel="2">预训练</a>
         
                 <a data-sort="0000" 
                     href="/archive/?tag=NLP"
@@ -667,21 +660,6 @@
 
 
 <!-- Google Analytics -->
-
-<script>
-    // dynamic User by Hux
-    var _gaId = 'UA-49627206-1';
-    var _gaDomain = 'huangxuan.me';
-
-    // Originial
-    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-    ga('create', _gaId, _gaDomain);
-    ga('send', 'pageview');
-</script>
 
 
 
